@@ -7,6 +7,7 @@ skin = require 'minecraft-skin'
 {MusicBlock} = require './musicblock'
 {Tracker} = require './tracker'
 {MessageBox} = require './messagebox'
+{after} = require './utils'
 
 currentMaterial = 1
 erase = true
@@ -34,6 +35,17 @@ module.exports = ->
 
   window.users = users = {}
 
+  cleanMessage = (user) ->
+    if user.textWrapper.children.length > 0
+      user.textWrapper.remove(user.textWrapper.children[0])
+
+  setMessage = (userId, msg) ->
+    user = users[userId]
+    return unless user
+    cleanMessage(user)
+    after 3000, -> cleanMessage(user)
+    user.add(textSprite(msg))
+
   processState = (state) ->
     user = users[state.id]
     return unless user
@@ -42,28 +54,60 @@ module.exports = ->
     user.position.set(pos.x, pos.y, pos.z) if pos
     user.rotation.set(rot.x, rot.y, rot.z) if rot
 
-  window.tracker = tracker = new Tracker
-    game: game
+  textSprite = (text) ->
+    canvas = document.createElement('canvas')
+    canvas.width = 60
+    canvas.height = 20
 
-  window.messageBox = messageBox = new MessageBox(el: $('#messagebox'))
-  messageBox.render()
-  messageBox.on 'message', (message) ->
-    console.log message
+    context = canvas.getContext('2d')
+    context.fillText(text, 0, 10)
 
-  tracker.on 'user:new', (state) ->
+    texture = new THREE.Texture(canvas)
+    texture.needsUpdate = true
+
+    sprite = new THREE.Sprite
+      map: texture
+      transparent: true
+      useScreenCoordinates: false
+    sprite.position.set(0, 0, 0)
+    sprite
+
+  addUser = (state) ->
     user = skin(game.THREE, 'lib/viking.png').createPlayerObject()
+    user.textWrapper = new THREE.Object3D()
+    user.add(user.textWrapper)
     processState(state)
     game.scene.add(user)
     users[state.id] = user
+
+  # message box
+  window.messageBox = messageBox = new MessageBox(el: $('#messagebox'))
+  messageBox.render()
+
+  messageBox.on 'message', (message) ->
+    tracker.message(message)
+
+  window.addEventListener 'keyup', (e) ->
+    return unless e.keyCode == 77 # Enter
+    messageBox.show()
+
+  # tracker
+  window.tracker = tracker = new Tracker
+    game: game
+
+  tracker.on 'user:new', (state) ->
+    addUser(state)
 
   tracker.on 'user:state', (state) ->
     processState(state)
 
   tracker.on 'user:close', (id) ->
+    user = users[id]
+    return unless user
     users[id] = undefined
+    user.parent.remove(user) if user.parent
 
-  window.addEventListener 'keyup', (e) ->
-    return unless e.keyCode == 77 # Enter
-    messageBox.show()
+  tracker.on 'user:message', (userId, message) ->
+    setMessage(userId, message)
 
   game

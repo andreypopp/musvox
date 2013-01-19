@@ -1,20 +1,30 @@
-{every} = require './utils'
 _ = require 'underscore'
-{EventEmitter} = require('events')
-inherits = require('inherits')
+$ = require 'jquery-browserify'
+{EventEmitter} = require 'events'
+inherits = require 'inherits'
+{every, Logger} = require './utils'
 
 class Tracker
   inherits this, EventEmitter
+  _.extend(this.prototype, Logger)
 
   constructor: (options) ->
     this.options = options or {}
     this.game = options.game
     this.sock = new WebSocket("ws://#{window.location.hostname}:8081/")
-    this.sock.onopen = => this.onOpen()
+    this.sock.onopen = =>
+      $(window).on 'unload', => this.sock.close()
+      $(window).on 'close', => this.sock.close()
+      this.onOpen()
     this.sock.onmessage = (msg) =>
       msg = JSON.parse(msg.data)
       this.onMessage(msg)
     this.seenIds = {}
+
+  message: (message) ->
+    this.sock.send JSON.stringify
+      type: 'message'
+      message: message
 
   onOpen: ->
     interval = this.options.interval or 300
@@ -39,16 +49,21 @@ class Tracker
           yawPosition: yawPosition
           yawRotation: yawRotation
 
-
   onMessage: (msg) ->
     if msg.type == 'state'
       if not this.seenIds[msg.id]
+        this.log("connected: #{msg.id}")
         this.emit 'user:new', msg
         this.seenIds[msg.id] = true
       else
         this.emit 'user:state', msg
     else if msg.type == 'close'
+      this.log("disconnected: #{msg.id}")
       this.emit 'user:close', msg.id
       delete this.seenIds[msg.id]
+    else if msg.type == 'message'
+      this.emit 'user:message', msg.id, msg.message
+    else
+      console.log 'unknown message type', msg
 
 module.exports = {Tracker}
