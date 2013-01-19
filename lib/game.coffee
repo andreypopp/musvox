@@ -56,18 +56,20 @@ class Game extends Backbone.View
     user.rotation.set(rot.x, rot.y, rot.z) if rot
 
   removeUser: (userId) ->
-    user = this.users[id]
+    user = this.users[userId]
     return unless user
-    this.users[id] = undefined
+    this.users[userId] = undefined
     user.parent.remove(user) if user.parent
 
   addUser: (userId, state) ->
-    user = skin(game.THREE, 'lib/viking.png').createPlayerObject()
+    user = skin(this.game.THREE, 'lib/viking.png').createPlayerObject()
+    this.users[userId] = user
+
     user.textWrapper = new THREE.Object3D()
     user.add(user.textWrapper)
-    this.updateUser(userId, state)
+
     this.game.scene.add(user)
-    this.users[state.id] = user
+    this.updateUser(userId, state)
 
   render: ->
     this.game.appendTo(this.el)
@@ -116,4 +118,4 @@ tracker.on 'user:state', (state) =>
 tracker.on 'user:close', (userId) =>
   gameView.removeUser(userId)
 tracker.on 'user:message', (userId, message) =>
-  gameView.setMessage(userId, message)
+  gameView.setUserMessage(userId, message)
