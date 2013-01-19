@@ -40,11 +40,12 @@ module.exports = ->
       user.textWrapper.remove(user.textWrapper.children[0])
 
   setMessage = (userId, msg) ->
+    return # XXX: doesn't work for now
     user = users[userId]
     return unless user
     cleanMessage(user)
     after 3000, -> cleanMessage(user)
-    user.add(textSprite(msg))
+    user.textWrapper.add(textSprite(msg))
 
   processState = (state) ->
     user = users[state.id]
