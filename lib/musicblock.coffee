@@ -55,8 +55,9 @@ class MusicBlock
 
   setListenerPosition: (pos) ->
     return unless this.sound
-    distanceVolumeEffect = this.options.distanceVolumeEffect or 0.05
-    this.sound.source.mediaElement.volume = 1 / Math.max(pos.length(), 1)
+    distanceVolumeEffect = this.options.distanceVolumeEffect or 0.2
+    this.sound.source.mediaElement.volume = 1 / Math.max((pos.length() - 25) * distanceVolumeEffect, 1)
+    this.sound.source.mediaElement.volume = 0 if this.sound.source.mediaElement.volume < 0.01
 
     # XXX: this doesn't work with MediaElementSourceNode :-(
     # pos = pos.multiplyScalar(distanceVolumeEffect)

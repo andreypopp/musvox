@@ -29,7 +29,6 @@ module.exports = ->
     soundUrl: 'http://api.soundcloud.com/tracks/293/stream?client_id=609ae0b573913db156968e0ec38c1e26'
     autoLoad: true
     autoPlay: true
-    distanceVolumeEffect: 1
 
   window.users = users = {}
 
@@ -55,5 +54,9 @@ module.exports = ->
 
   tracker.on 'user:close', (id) ->
     users[id] = undefined
+
+  window.addEventListener 'keyup', (e) ->
+    return unless e.keyCode == 13 # Enter
+
 
   game

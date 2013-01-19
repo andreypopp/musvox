@@ -23,11 +23,13 @@ class Tracker
     every interval, =>
       needBroadcast = false
 
-      yawPosition = this.game.controls.yawObject.position
+      yawPosition = this.game.controls.yawObject.position.clone()
+      yawPosition.y = yawPosition.y - this.game.cubeSize
       needBroadcast = true unless _.isEqual(yawPosition, yawPositionOld)
       yawPositionOld = yawPosition.clone()
 
-      yawRotation = this.game.controls.yawObject.rotation
+      yawRotation = this.game.controls.yawObject.rotation.clone()
+      yawRotation.y = yawRotation.y + Math.PI / 2
       needBroadcast = true unless _.isEqual(yawRotation, yawRotationOld)
       yawRotationOld = yawRotation.clone()
       
