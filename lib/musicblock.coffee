@@ -1,4 +1,6 @@
+_ = require 'underscore'
 THREE = require 'three'
+{every} = require './utils'
 
 class MusicBlock
 
@@ -17,25 +19,27 @@ class MusicBlock
 
     this.game.createBlock(this.pos, options.texture)
 
-    this.game.controls.on 'command', (command, isKeyDown) =>
+    charPosOld = undefined
+    every 500, =>
       charPos = this.game.controls.yawObject.position.clone()
+      return if _.isEqual(charPos, charPosOld)
+      charPosOld = charPos.clone()
       pos = this.pos.clone()
       this.setListenerPosition(pos.subSelf(charPos))
 
     this.load() if options.autoLoad
 
   load: (url = this.options.soundUrl) ->
-    request = new XMLHttpRequest()
-    request.open("GET", url, true)
-    request.responseType = "arraybuffer"
-    request.onload = =>
-      this.make(request.response)
-    request.send()
+    body = document.getElementsByTagName('body')[0]
+    audio = document.createElement('audio')
+    audio.setAttribute('src', url)
+    body.appendChild(audio)
+    source = this.ctx.createMediaElementSource(audio)
+    this.make(source)
 
-  make: (audioData) ->
+  make: (source) ->
     sound = this.sound = {}
-
-    sound.source = this.ctx.createBufferSource()
+    sound.source = source
     sound.source.loop = true
     sound.volume = this.ctx.createGainNode()
     sound.panner = this.ctx.createPanner()
@@ -44,20 +48,19 @@ class MusicBlock
     sound.volume.connect(sound.panner)
     sound.panner.connect(this.mainVolume)
 
-
-    sound.buffer = this.ctx.createBuffer(audioData, false)
-
-    sound.source.buffer = sound.buffer
     this.play() if this.options.autoPlay
 
   play: ->
-    this.sound.source.noteOn(this.ctx.currentTime)
+    this.sound.source.mediaElement.play()
 
   setListenerPosition: (pos) ->
     return unless this.sound
     distanceVolumeEffect = this.options.distanceVolumeEffect or 0.05
-    pos = pos.multiplyScalar(distanceVolumeEffect)
-    this.ctx.listener.setPosition(pos.x, pos.y, pos.z)
+    this.sound.source.mediaElement.volume = 1 / Math.max(pos.length(), 1)
+
+    # XXX: this doesn't work with MediaElementSourceNode :-(
+    # pos = pos.multiplyScalar(distanceVolumeEffect)
+    # this.ctx.listener.setPosition(pos.x, pos.y, pos.z)
 
 newAudioContext = ->
   if typeof AudioContext != "undefined"

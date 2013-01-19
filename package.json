@@ -16,7 +16,9 @@
     "raf": "0.0.1",
     "interact": "0.0.2",
     "toolbar": "0.0.2",
-    "voxel-texture": "0.2.1"
+    "voxel-texture": "0.2.1",
+    "underscore": "",
+    "ws": ""
 	},
   "devDependencies": {
     "minecraft-skin": "0.0.1",

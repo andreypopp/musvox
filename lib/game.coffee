@@ -1,8 +1,10 @@
 createGame = require 'voxel-engine'
 THREE = require 'three'
+_ = require 'underscore'
 voxel = require 'voxel'
 skin = require 'minecraft-skin'
 {MusicBlock} = require './musicblock'
+{Tracker} = require './tracker'
 
 currentMaterial = 1
 erase = true
@@ -20,13 +22,38 @@ module.exports = ->
     worldOrigin: [0,0,0]
     controlOptions: {jump: 6}
 
-  window.music = new MusicBlock
+  window.music = music = new MusicBlock
     game: game
     texture: 6
     pos: {x: 5, y: 77, z: 5}
-    soundUrl: 'lib/sounds/Mark_Neil_-_11_strANGE_Ls.mp3'
+    soundUrl: 'http://api.soundcloud.com/tracks/293/stream?client_id=609ae0b573913db156968e0ec38c1e26'
     autoLoad: true
     autoPlay: true
-    distanceVolumeEffect: 0.3
+    distanceVolumeEffect: 1
+
+  window.users = users = {}
+
+  processState = (state) ->
+    user = users[state.id]
+    return unless user
+    pos = state.yawPosition
+    rot = state.yawRotation
+    user.position.set(pos.x, pos.y, pos.z) if pos
+    user.rotation.set(rot.x, rot.y, rot.z) if rot
+
+  window.tracker = tracker = new Tracker
+    game: game
+
+  tracker.on 'user:new', (state) ->
+    user = skin(game.THREE, 'lib/viking.png').createPlayerObject()
+    processState(state)
+    game.scene.add(user)
+    users[state.id] = user
+
+  tracker.on 'user:state', (state) ->
+    processState(state)
+
+  tracker.on 'user:close', (id) ->
+    users[id] = undefined
 
   game
