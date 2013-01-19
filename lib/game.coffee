@@ -19,14 +19,6 @@ module.exports = ->
     worldOrigin: [0,0,0]
     controlOptions: {jump: 6}
 
-  game.on 'mousedown', ->
-    cid = game.voxels.chunkAtPosition(pos)
-    vid = game.voxels.voxelAtPosition(pos)
-
-  game.on 'collision', (item) ->
-    incrementBlockTally()
-    game.removeItem(item)
-
   window.music = new MusicBlock
     game: game
     texture: 6
