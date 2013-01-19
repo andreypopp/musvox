@@ -1,0 +1,25 @@
+{
+  "name": "musvox",
+  "main": "lib/app.js",
+  "version": "0.1.0",
+  "repository": {
+    "type":"git",
+    "url": "git@github.com:andreypopp/musvox.git"
+  },
+  "dependencies": {
+    "voxel-engine": "0.2.9",
+    "voxel": "0.1.0",
+    "voxel-mesh": "0.1.0",
+    "inherits": "1.0.0",
+    "player-physics": "0.0.7",
+    "three": "0.54.0",
+    "raf": "0.0.1",
+    "interact": "0.0.2",
+    "toolbar": "0.0.2",
+    "voxel-texture": "0.2.1"
+	},
+  "devDependencies": {
+    "minecraft-skin": "0.0.1",
+    "browservefy": "0.0.0"
+  }
+}
