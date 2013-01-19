@@ -14,9 +14,6 @@ skin = require 'minecraft-skin'
 class Game extends Backbone.View
 
   events:
-    keyup: (e) ->
-      return unless e.keyCode == 77 # Enter
-      Backbone.trigger 'showMessageBox'
     click: ->
       this.game.requestPointerLock(this.el)
 
@@ -73,6 +70,9 @@ class Game extends Backbone.View
 
   render: ->
     this.game.appendTo(this.el)
+    this.listenTo Backbone,
+      hideGame: => this.$el.hide()
+      showGame: => this.$el.show()
 
   addMusicBlock: ->
     new MusicBlock
@@ -100,6 +100,11 @@ textSprite = (text) ->
     useScreenCoordinates: false
   sprite.position.set(0, 0, 0)
   sprite
+
+
+$(window).on 'keyup', (e) ->
+  return unless e.keyCode == 77 # Enter
+  Backbone.trigger 'showMessageBox'
 
 gameView = window.gameView = new Game(el: $('#game'))
 gameView.render()

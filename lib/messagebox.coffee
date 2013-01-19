@@ -22,6 +22,7 @@ class MessageBox extends Backbone.View
       <input class="message" name="message" />
     """
     this.$message = this.$('.message')
+    this.listenTo Backbone, 'showMessageBox', => this.show()
 
 
 module.exports = {MessageBox}
