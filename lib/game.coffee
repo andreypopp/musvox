@@ -8,6 +8,7 @@ currentMaterial = 1
 erase = true
 
 module.exports = ->
+
   window.game = game = createGame
     generate: voxel.generator['Valley']
     texturePath: 'lib/textures/'
@@ -26,5 +27,6 @@ module.exports = ->
     soundUrl: 'lib/sounds/Mark_Neil_-_11_strANGE_Ls.mp3'
     autoLoad: true
     autoPlay: true
+    distanceVolumeEffect: 0.3
 
   game

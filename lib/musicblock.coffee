@@ -55,8 +55,8 @@ class MusicBlock
 
   setListenerPosition: (pos) ->
     return unless this.sound
-    geomEffect = this.options.geomEffect or 0.05
-    pos = pos.multiplyScalar(geomEffect)
+    distanceVolumeEffect = this.options.distanceVolumeEffect or 0.05
+    pos = pos.multiplyScalar(distanceVolumeEffect)
     this.ctx.listener.setPosition(pos.x, pos.y, pos.z)
 
 newAudioContext = ->
