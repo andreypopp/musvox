@@ -1,24 +1,21 @@
-Backbone = require 'backbone'
-$ = require 'jquery-browserify'
-Backbone.$ = $
+Backbone = require './backbone'
 
 class MessageBox extends Backbone.View
   events:
     keypress: (e) ->
       return unless e.keyCode == 13 # Enter
-      e.stopPropagation()
       this.trigger 'message', this.$message.attr('value')
       this.$message.attr('value', '')
       this.hide()
 
   show: ->
-    $('#container').hide()
+    Backbone.trigger 'hideGame'
     this.$el.show()
     this.$message.focus()
 
   hide: ->
     this.$el.hide()
-    $('#container').show()
+    Backbone.trigger 'showGame'
 
   render: ->
     this.$el.html """

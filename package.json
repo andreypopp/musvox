@@ -20,7 +20,6 @@
     "underscore": "",
     "ws": "",
     "jquery-browserify": "",
-    "backbone": ""
 	},
   "devDependencies": {
     "minecraft-skin": "0.0.1",

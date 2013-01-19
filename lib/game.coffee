@@ -2,6 +2,7 @@ createGame = require 'voxel-engine'
 THREE = require 'three'
 _ = require 'underscore'
 voxel = require 'voxel'
+Backbone = require './backbone'
 $ = require 'jquery-browserify'
 skin = require 'minecraft-skin'
 {MusicBlock} = require './musicblock'
@@ -9,106 +10,110 @@ skin = require 'minecraft-skin'
 {MessageBox} = require './messagebox'
 {after} = require './utils'
 
-currentMaterial = 1
-erase = true
 
-module.exports = ->
+class Game extends Backbone.View
 
-  window.game = game = createGame
-    generate: voxel.generator['Valley']
-    texturePath: 'lib/textures/'
-    materials: [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt', 'obsidian', 'crate', 'speaker']
-    cubeSize: 25
-    chunkSize: 32
-    chunkDistance: 2
-    startingPosition: [35, 1024, 35]
-    worldOrigin: [0,0,0]
-    controlOptions: {jump: 6}
+  events:
+    keyup: (e) ->
+      return unless e.keyCode == 77 # Enter
+      Backbone.trigger 'showMessageBox'
+    click: ->
+      this.game.requestPointerLock(this.el)
 
-  window.music = music = new MusicBlock
-    game: game
-    texture: 6
-    pos: {x: 5, y: 77, z: 5}
-    soundUrl: 'http://api.soundcloud.com/tracks/293/stream?client_id=609ae0b573913db156968e0ec38c1e26'
-    autoLoad: true
-    autoPlay: true
+  initialize: ->
+    this.game = createGame
+      generate: voxel.generator['Hill']
+      texturePath: 'lib/textures/'
+      materials: [['grass', 'dirt', 'grass_dirt'], 'brick', 'dirt', 'obsidian', 'crate', 'speaker']
+      cubeSize: 25
+      chunkSize: 32
+      chunkDistance: 2
+      startingPosition: [385, 70, 385]
+      worldOrigin: [0, 0, 0]
+      controlOptions: {jump: 6}
+    this.users = {}
 
-  window.users = users = {}
-
-  cleanMessage = (user) ->
+  cleanUserMessage: (userId) ->
+    user = this.users[userId]
+    return unless user
     if user.textWrapper.children.length > 0
       user.textWrapper.remove(user.textWrapper.children[0])
 
-  setMessage = (userId, msg) ->
+  setUserMessage: (userId, msg) ->
     return # XXX: doesn't work for now
-    user = users[userId]
+    user = this.users[userId]
     return unless user
-    cleanMessage(user)
-    after 3000, -> cleanMessage(user)
+    this.cleanUserMessage(user)
+    after 3000, => this.cleanUserMessage(user)
     user.textWrapper.add(textSprite(msg))
 
-  processState = (state) ->
-    user = users[state.id]
+  updateUser: (userId, state) ->
+    user = this.users[userId]
     return unless user
     pos = state.yawPosition
     rot = state.yawRotation
     user.position.set(pos.x, pos.y, pos.z) if pos
     user.rotation.set(rot.x, rot.y, rot.z) if rot
 
-  textSprite = (text) ->
-    canvas = document.createElement('canvas')
-    canvas.width = 60
-    canvas.height = 20
+  removeUser: (userId) ->
+    user = this.users[id]
+    return unless user
+    this.users[id] = undefined
+    user.parent.remove(user) if user.parent
 
-    context = canvas.getContext('2d')
-    context.fillText(text, 0, 10)
-
-    texture = new THREE.Texture(canvas)
-    texture.needsUpdate = true
-
-    sprite = new THREE.Sprite
-      map: texture
-      transparent: true
-      useScreenCoordinates: false
-    sprite.position.set(0, 0, 0)
-    sprite
-
-  addUser = (state) ->
+  addUser: (userId, state) ->
     user = skin(game.THREE, 'lib/viking.png').createPlayerObject()
     user.textWrapper = new THREE.Object3D()
     user.add(user.textWrapper)
-    processState(state)
-    game.scene.add(user)
-    users[state.id] = user
+    this.updateUser(userId, state)
+    this.game.scene.add(user)
+    this.users[state.id] = user
 
-  # message box
-  window.messageBox = messageBox = new MessageBox(el: $('#messagebox'))
-  messageBox.render()
+  render: ->
+    this.game.appendTo(this.el)
 
-  messageBox.on 'message', (message) ->
-    tracker.message(message)
+  addMusicBlock: ->
+    new MusicBlock
+      game: this.game
+      texture: 6
+      pos: {x: 387, y: 100, z: 387}
+      soundUrl: 'http://api.soundcloud.com/tracks/293/stream?client_id=609ae0b573913db156968e0ec38c1e26'
+      autoLoad: true
+      autoPlay: true
 
-  window.addEventListener 'keyup', (e) ->
-    return unless e.keyCode == 77 # Enter
-    messageBox.show()
+textSprite = (text) ->
+  canvas = document.createElement('canvas')
+  canvas.width = 60
+  canvas.height = 20
 
-  # tracker
-  window.tracker = tracker = new Tracker
-    game: game
+  context = canvas.getContext('2d')
+  context.fillText(text, 0, 10)
 
-  tracker.on 'user:new', (state) ->
-    addUser(state)
+  texture = new THREE.Texture(canvas)
+  texture.needsUpdate = true
 
-  tracker.on 'user:state', (state) ->
-    processState(state)
+  sprite = new THREE.Sprite
+    map: texture
+    transparent: true
+    useScreenCoordinates: false
+  sprite.position.set(0, 0, 0)
+  sprite
 
-  tracker.on 'user:close', (id) ->
-    user = users[id]
-    return unless user
-    users[id] = undefined
-    user.parent.remove(user) if user.parent
+gameView = window.gameView = new Game(el: $('#game'))
+gameView.render()
+gameView.addMusicBlock()
 
-  tracker.on 'user:message', (userId, message) ->
-    setMessage(userId, message)
+messageBox = window.messageBox = new MessageBox(el: $('#messagebox'))
+messageBox.render()
+messageBox.on 'message', (message) =>
+  tracker.message(message)
 
-  game
+tracker = window.tracker = new Tracker(game: gameView.game)
+tracker.on 'user:new', (state) =>
+  gameView.addUser(state.id, state)
+tracker.on 'user:state', (state) =>
+  gameView.updateUser(state.id, state)
+tracker.on 'user:close', (userId) =>
+  gameView.removeUser(userId)
+tracker.on 'user:message', (userId, message) =>
+  gameView.setMessage(userId, message)
