@@ -2,9 +2,11 @@ createGame = require 'voxel-engine'
 THREE = require 'three'
 _ = require 'underscore'
 voxel = require 'voxel'
+$ = require 'jquery-browserify'
 skin = require 'minecraft-skin'
 {MusicBlock} = require './musicblock'
 {Tracker} = require './tracker'
+{MessageBox} = require './messagebox'
 
 currentMaterial = 1
 erase = true
@@ -43,6 +45,11 @@ module.exports = ->
   window.tracker = tracker = new Tracker
     game: game
 
+  window.messageBox = messageBox = new MessageBox(el: $('#messagebox'))
+  messageBox.render()
+  messageBox.on 'message', (message) ->
+    console.log message
+
   tracker.on 'user:new', (state) ->
     user = skin(game.THREE, 'lib/viking.png').createPlayerObject()
     processState(state)
@@ -56,7 +63,7 @@ module.exports = ->
     users[id] = undefined
 
   window.addEventListener 'keyup', (e) ->
-    return unless e.keyCode == 13 # Enter
-
+    return unless e.keyCode == 77 # Enter
+    messageBox.show()
 
   game

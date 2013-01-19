@@ -16,11 +16,30 @@
         -webkit-user-select: none;
         user-select: none;
       }
+      #messagebox {
+        display: none;
+        position: fixed;
+        height: 100%;
+        width: 100%;
+        background: #aeaeae;
+      }
+      #messagebox input {
+        border: none;
+        font-size: 300%;
+        background: #aeaeae;
+        color: #fff;
+        text-transform: uppercase;
+        padding: 2em;
+      }
+      #messagebox input:focus {
+        outline: none;
+      }
     </style>
     <link href="lib/ratchet.css" media="screen" rel="stylesheet" type="text/css" />
   </head>
   <body>
     <div id="container"></div>
+    <div id="messagebox"></div>
     <script type="text/javascript" src="lib/app.js"></script>
   </body>
 </html>

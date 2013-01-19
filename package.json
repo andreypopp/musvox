@@ -18,7 +18,9 @@
     "toolbar": "0.0.2",
     "voxel-texture": "0.2.1",
     "underscore": "",
-    "ws": ""
+    "ws": "",
+    "jquery-browserify": "",
+    "backbone": ""
 	},
   "devDependencies": {
     "minecraft-skin": "0.0.1",
