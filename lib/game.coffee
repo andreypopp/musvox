@@ -7,6 +7,7 @@ $ = require 'jquery-browserify'
 skin = require 'minecraft-skin'
 {MusicBlock} = require './musicblock'
 {Tracker} = require './tracker'
+{Track} = require './track'
 {MessageBox, SongBox} = require './messagebox'
 {after} = require './utils'
 
@@ -29,7 +30,9 @@ class Game extends Backbone.View
       worldOrigin: [0, 0, 0]
       controlOptions: {jump: 6}
     this.game.on 'mousedown', (pos) =>
-      this.addMusicBlock(pos)
+      newBlock = this.game.checkBlock(pos)
+      return if not newBlock
+      this.askForMusicBlock(pos: pos, show: true)
     this.musicBlocks = []
     this.users = {}
 
@@ -77,17 +80,54 @@ class Game extends Backbone.View
       hideGame: => this.$el.hide()
       showGame: => this.$el.show()
 
-  addMusicBlock: (pos) ->
-    musicBlock = new MusicBlock
-      game: this.game
-      texture: 6
-      pos: pos
-      autoLoad: true
-      autoPlay: true
+  askForMusicBlock: (options) ->
     SongBox.open (track) =>
-      musicBlock.add(track)
+      options.queue = [track]
+      this.addMusicBlock(options)
+
+  hasMusicBlock: (id) ->
+    for b in this.musicBlocks
+      if b.id == id or b.cid == id
+        return b
+
+  addMusicBlock: (options) ->
+
+    if options.musicblockId and this.hasMusicBlock(options.musicblockId)
+      console.log 'already has block'
+      return
+
+    addQueue = (q) =>
+      for t in q
+        if _.isArray(t)
+          addQueue(t)
+        else if not (t instanceof Track)
+          musicBlock.add(new Track(t))
+        else
+          musicBlock.add(t)
+
+    musicBlock = new MusicBlock
+      id: options.musicblockId
+      game: this.game
+      chunkIndex: options.chunkIndex
+      voxelVector: options.voxelVector
+      texture: 6
+      pos: options.pos
+
+    addQueue(options.queue) if options.queue
+
+    if options.track?
+      musicBlock.play(options.track.id)
+      musicBlock.player.sound.setPosition(options.track.position)
+    else
       musicBlock.play()
+
+    musicBlock.updateListenerPosition()
+
     this.musicBlocks.push(musicBlock)
+    this.trigger('musicblock', musicBlock) unless options.silent
+
+    musicBlock.show() if options.show
+
 
 textSprite = (text) ->
   canvas = document.createElement('canvas')
@@ -113,13 +153,15 @@ $(window).on 'keyup', (e) ->
 
 gameView = window.gameView = new Game(el: $('#game'))
 gameView.render()
+gameView.on 'musicblock', (musicblock) =>
+  tracker.musicblock(musicblock)
 
 messageBox = window.messageBox = new MessageBox(el: $('#messagebox'))
 messageBox.render()
 messageBox.on 'message', (message) =>
   tracker.message(message)
 
-tracker = window.tracker = new Tracker(game: gameView.game)
+tracker = window.tracker = new Tracker(game: gameView)
 tracker.on 'user:new', (state) =>
   gameView.addUser(state.id, state)
 tracker.on 'user:state', (state) =>

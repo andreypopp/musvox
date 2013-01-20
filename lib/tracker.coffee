@@ -32,7 +32,9 @@ class Tracker
     Send a `message` over websocket.
   ###
   send: (msg) ->
+    msg.reqId = _.uniqueId('reqId')
     this.sock.send(JSON.stringify(msg))
+    msg.reqId
 
   ###*
     Send a chat `message` to other users.
@@ -41,6 +43,19 @@ class Tracker
     this.send
       type: 'message'
       message: message
+
+  musicblock: (musicblock) ->
+    this.send
+      type: 'musicblock'
+      chunkIndex: musicblock.chunkIndex
+      voxelVector: musicblock.voxelVector
+      cid: musicblock.cid
+      id: musicblock.id
+      pos: musicblock.pos
+      queue: musicblock.player.queue
+      track:
+        id: musicblock.player.cur.cur()?.id
+        position: musicblock.player.sound?.position or 0
 
   ###*
     Callback for connection open with a server.
@@ -53,12 +68,12 @@ class Tracker
     every interval, =>
       needBroadcast = false
 
-      yawPosition = this.game.controls.yawObject.position.clone()
-      yawPosition.y = yawPosition.y - this.game.cubeSize
+      yawPosition = this.game.game.controls.yawObject.position.clone()
+      yawPosition.y = yawPosition.y - this.game.game.cubeSize
       needBroadcast = true unless _.isEqual(yawPosition, yawPositionOld)
       yawPositionOld = yawPosition.clone()
 
-      yawRotation = this.game.controls.yawObject.rotation.clone()
+      yawRotation = this.game.game.controls.yawObject.rotation.clone()
       yawRotation.y = yawRotation.y + Math.PI / 2
       needBroadcast = true unless _.isEqual(yawRotation, yawRotationOld)
       yawRotationOld = yawRotation.clone()
@@ -75,6 +90,9 @@ class Tracker
     @param {object} msg - received message
   ###
   onMessage: (msg) ->
+    if msg.type != 'state'
+      console.log msg.type, msg
+
     if msg.type == 'state'
       if not this.seenIds[msg.id]
         this.log("connected: #{msg.id}")
@@ -90,6 +108,17 @@ class Tracker
 
     else if msg.type == 'message'
       this.emit 'user:message', msg.id, msg.message
+
+    else if msg.type == 'musicblock'
+      console.log 'got block', msg
+      msg.silent = true
+      msg.show = true
+      this.game.addMusicBlock(msg)
+
+    else if msg.type == 'musicblock:reply'
+      musicBlock = this.game.hasMusicBlock(msg.cid)
+      if musicBlock
+        musicBlock.id = msg.musicblockId
 
     else
       console.log 'unknown message type', msg

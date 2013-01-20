@@ -7,12 +7,18 @@ sockets = []
 sendMsgFrom = (sock, msg) ->
   for osock in sockets when osock.id != sock.id
     newMsg = _.extend({id: sock.id}, msg)
-    osock.send(JSON.stringify(newMsg))
+    send(osock, newMsg)
 
 sendMsgTo = (sock) ->
   for osock in sockets when osock.id != sock.id and osock.msg
     newMsg = _.extend({id: osock.id}, osock.msg)
-    sock.send(JSON.stringify(newMsg))
+    send(sock, newMsg)
+
+send = (sock, data) ->
+  try
+    sock.send JSON.stringify data
+  catch e
+    undefined
 
 server.on 'connection', (sock) ->
   sock.id = _.uniqueId('user')
@@ -22,7 +28,17 @@ server.on 'connection', (sock) ->
 
   sock.on 'message', (msg) ->
     msg = JSON.parse(msg)
-    sock.msg = msg if msg.type == 'state'
+
+    # store state on socket to broadcast on new client
+    if msg.type == 'state'
+      sock.msg = msg
+
+    # assign id to musicblock
+    if msg.type == 'musicblock'
+      msg.musicblockId = _.uniqueId('musicblock')
+
+      send(sock, _.extend({}, msg, {type: 'musicblock:reply'}))
+
     sendMsgFrom(sock, msg)
 
   sock.on 'close', ->
