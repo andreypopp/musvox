@@ -151,8 +151,8 @@ textSprite = (text) ->
   sprite
 
 $(window).on 'keyup', (e) ->
-  if e.keyCode == 77 # 'm'
-    Backbone.trigger 'showMessageBox'
+ #if e.keyCode == 77 # 'm'
+ #  Backbone.trigger 'showMessageBox'
 
 gameView = window.gameView = new Game(el: $('#game'))
 gameView.render()
