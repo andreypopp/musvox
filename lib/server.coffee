@@ -3,6 +3,7 @@ _ = require 'underscore'
 
 server = new Server(port: 8081)
 sockets = []
+musicBlocks = []
 
 sendMsgFrom = (sock, msg) ->
   for osock in sockets when osock.id != sock.id
@@ -13,6 +14,7 @@ sendMsgTo = (sock) ->
   for osock in sockets when osock.id != sock.id and osock.msg
     newMsg = _.extend({id: osock.id}, osock.msg)
     send(sock, newMsg)
+  send(sock, {type: 'musicblocks', blocks: musicBlocks})
 
 send = (sock, data) ->
   try
@@ -36,6 +38,7 @@ server.on 'connection', (sock) ->
     # assign id to musicblock
     if msg.type == 'musicblock'
       msg.musicblockId = _.uniqueId('musicblock')
+      musicBlocks.push(_.extend({}, msg))
 
       send(sock, _.extend({}, msg, {type: 'musicblock:reply'}))
 

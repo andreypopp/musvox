@@ -90,9 +90,6 @@ class Tracker
     @param {object} msg - received message
   ###
   onMessage: (msg) ->
-    if msg.type != 'state'
-      console.log msg.type, msg
-
     if msg.type == 'state'
       if not this.seenIds[msg.id]
         this.log("connected: #{msg.id}")
@@ -110,10 +107,16 @@ class Tracker
       this.emit 'user:message', msg.id, msg.message
 
     else if msg.type == 'musicblock'
-      console.log 'got block', msg
       msg.silent = true
       msg.show = true
       this.game.addMusicBlock(msg)
+
+    else if msg.type == 'musicblocks'
+      console.log msg
+      for block in msg.blocks
+        block.silent = true
+        block.show = true
+        this.game.addMusicBlock(block)
 
     else if msg.type == 'musicblock:reply'
       musicBlock = this.game.hasMusicBlock(msg.cid)

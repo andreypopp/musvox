@@ -93,7 +93,6 @@ class Game extends Backbone.View
   addMusicBlock: (options) ->
 
     if options.musicblockId and this.hasMusicBlock(options.musicblockId)
-      console.log 'already has block'
       return
 
     addQueue = (q) =>
