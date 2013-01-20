@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <style type="text/css">
       body {
-        font-family: Monospace;
+        font-family: sans-serif;
         font-size: 12px;
         background-color: #f0f0f0;
         margin: 0px;
@@ -18,24 +18,32 @@
       }
       #messagebox {
         display: none;
+      }
+      #messagebox, .songbox {
         position: fixed;
         height: 100%;
         width: 100%;
         background: #aeaeae;
       }
-      #messagebox input {
+      #messagebox input, .songbox input {
+        padding: 2em;
+        width : 100%
+      }
+      #messagebox input, .songbox input, .ui-autocomplete .ui-menu-item {
+        list-style: none;
         border: none;
         font-size: 300%;
         background: #aeaeae;
         color: #fff;
         text-transform: uppercase;
-        padding: 2em;
       }
-      #messagebox input:focus {
+      #messagebox input:focus, .songbox input:focus {
         outline: none;
       }
+      .ui-helper-hidden-accessible {
+        display: none;
+      }
     </style>
-    <link href="lib/ratchet.css" media="screen" rel="stylesheet" type="text/css" />
   </head>
   <body>
     <div id="game"></div>

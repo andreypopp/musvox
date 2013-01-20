@@ -4,6 +4,11 @@ $ = require 'jquery-browserify'
 inherits = require 'inherits'
 {every, Logger} = require './utils'
 
+###*
+  Game state tracker.
+
+  @param {object} options - an options object, `game` option is required
+###
 class Tracker
   inherits this, EventEmitter
   _.extend(this.prototype, Logger)
@@ -12,20 +17,35 @@ class Tracker
     this.options = options or {}
     this.game = options.game
     this.sock = new WebSocket("ws://#{window.location.hostname}:8081/")
+    this.seenIds = {}
+
     this.sock.onopen = =>
       $(window).on 'unload', => this.sock.close()
       $(window).on 'close', => this.sock.close()
       this.onOpen()
+
     this.sock.onmessage = (msg) =>
       msg = JSON.parse(msg.data)
       this.onMessage(msg)
-    this.seenIds = {}
 
+  ###*
+    Send a `message` over websocket.
+  ###
+  send: (msg) ->
+    this.sock.send(JSON.stringify(msg))
+
+  ###*
+    Send a chat `message` to other users.
+  ###
   message: (message) ->
-    this.sock.send JSON.stringify
+    this.send
       type: 'message'
       message: message
 
+  ###*
+    Callback for connection open with a server.
+    This callback sets up a player's state notification.
+  ###
   onOpen: ->
     interval = this.options.interval or 300
     yawPositionOld = undefined
@@ -44,11 +64,16 @@ class Tracker
       yawRotationOld = yawRotation.clone()
       
       if needBroadcast
-        this.sock.send JSON.stringify
+        this.send
           type: 'state'
           yawPosition: yawPosition
           yawRotation: yawRotation
 
+  ###*
+    Callback for every message received from a server.
+
+    @param {object} msg - received message
+  ###
   onMessage: (msg) ->
     if msg.type == 'state'
       if not this.seenIds[msg.id]
@@ -57,12 +82,15 @@ class Tracker
         this.seenIds[msg.id] = true
       else
         this.emit 'user:state', msg
+
     else if msg.type == 'close'
       this.log("disconnected: #{msg.id}")
       this.emit 'user:close', msg.id
       delete this.seenIds[msg.id]
+
     else if msg.type == 'message'
       this.emit 'user:message', msg.id, msg.message
+
     else
       console.log 'unknown message type', msg
 

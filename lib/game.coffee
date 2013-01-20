@@ -7,7 +7,7 @@ $ = require 'jquery-browserify'
 skin = require 'minecraft-skin'
 {MusicBlock} = require './musicblock'
 {Tracker} = require './tracker'
-{MessageBox} = require './messagebox'
+{MessageBox, SongBox} = require './messagebox'
 {after} = require './utils'
 
 
@@ -30,6 +30,7 @@ class Game extends Backbone.View
       controlOptions: {jump: 6}
     this.game.on 'mousedown', (pos) =>
       this.addMusicBlock(pos)
+    this.musicBlocks = []
     this.users = {}
 
   cleanUserMessage: (userId) ->
@@ -77,13 +78,16 @@ class Game extends Backbone.View
       showGame: => this.$el.show()
 
   addMusicBlock: (pos) ->
-    new MusicBlock
+    musicBlock = new MusicBlock
       game: this.game
       texture: 6
       pos: pos
-      soundUrl: 'http://api.soundcloud.com/tracks/293/stream?client_id=609ae0b573913db156968e0ec38c1e26'
       autoLoad: true
       autoPlay: true
+    SongBox.open (track) =>
+      musicBlock.add(track)
+      musicBlock.play()
+    this.musicBlocks.push(musicBlock)
 
 textSprite = (text) ->
   canvas = document.createElement('canvas')

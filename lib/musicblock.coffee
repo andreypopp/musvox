@@ -1,5 +1,6 @@
 _ = require 'underscore'
 THREE = require 'three'
+{Player} = require './backbone.sm2'
 {every} = require './utils'
 
 class MusicBlock
@@ -11,13 +12,9 @@ class MusicBlock
     this.pos = options.pos
     if not (this.pos instanceof THREE.Vector3)
       this.pos = new THREE.Vector3(this.pos.x, this.pos.y, this.pos.z) 
-
-    this.ctx = newAudioContext()
-    this.mainVolume = this.ctx.createGainNode()
-    this.mainVolume.connect(this.ctx.destination)
-    this.sound = undefined
-
     this.game.createBlock(this.pos, options.texture)
+
+    this.player = new Player()
 
     charPosOld = undefined
     every 500, =>
@@ -27,48 +24,19 @@ class MusicBlock
       pos = this.pos.clone()
       this.setListenerPosition(pos.subSelf(charPos))
 
-    this.load() if options.autoLoad
+    this.add(options.sound) if options.sound
 
-  load: (url = this.options.soundUrl) ->
-    body = document.getElementsByTagName('body')[0]
-    audio = document.createElement('audio')
-    audio.setAttribute('src', url)
-    body.appendChild(audio)
-    source = this.ctx.createMediaElementSource(audio)
-    this.make(source)
-
-  make: (source) ->
-    sound = this.sound = {}
-    sound.source = source
-    sound.source.loop = true
-    sound.volume = this.ctx.createGainNode()
-    sound.panner = this.ctx.createPanner()
-
-    sound.source.connect(sound.volume)
-    sound.volume.connect(sound.panner)
-    sound.panner.connect(this.mainVolume)
-
-    this.play() if this.options.autoPlay
+  add: (sound) ->
+    this.player.add(sound)
 
   play: ->
-    this.sound.source.mediaElement.play()
+    this.player.play()
 
   setListenerPosition: (pos) ->
-    return unless this.sound
     distanceVolumeEffect = this.options.distanceVolumeEffect or 0.2
-    this.sound.source.mediaElement.volume = 1 / Math.max((pos.length() - 25) * distanceVolumeEffect, 1)
-    this.sound.source.mediaElement.volume = 0 if this.sound.source.mediaElement.volume < 0.01
-
-    # XXX: this doesn't work with MediaElementSourceNode :-(
-    # pos = pos.multiplyScalar(distanceVolumeEffect)
-    # this.ctx.listener.setPosition(pos.x, pos.y, pos.z)
-
-newAudioContext = ->
-  if typeof AudioContext != "undefined"
-    new AudioContext()
-  else if typeof webkitAudioContext != "undefined"
-    new webkitAudioContext();
-  else
-    throw new Error('AudioContext not supported. :(')
+    volume = 1 / Math.max(pos.length() * distanceVolumeEffect, 1)
+    volume = parseInt(volume * 700)
+    volume = 0 if volume < 5
+    this.player.sound?.setVolume(volume)
 
 module.exports = {MusicBlock}
