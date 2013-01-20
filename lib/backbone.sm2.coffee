@@ -207,7 +207,6 @@
     # init track with a sound object
     initPlayable: (track, preload = false) ->
       sound = soundManager.createSound
-        loops: 99999999
         onid3: =>
           @trigger 'track:id3loaded', track, sound.id3
         onload: =>
