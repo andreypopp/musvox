@@ -77,8 +77,12 @@ class Game extends Backbone.View
   render: ->
     this.game.appendTo(this.el)
     this.listenTo Backbone,
-      hideGame: => this.$el.hide()
-      showGame: => this.$el.show()
+      hideGame: =>
+        this.$el.hide()
+        $('body > canvas').hide()
+      showGame: =>
+        this.$el.show()
+        $('body > canvas').show()
 
   askForMusicBlock: (options) ->
     SongBox.open (track) =>
