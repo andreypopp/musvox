@@ -28,6 +28,8 @@ class Game extends Backbone.View
       startingPosition: [385, 70, 385]
       worldOrigin: [0, 0, 0]
       controlOptions: {jump: 6}
+    this.game.on 'mousedown', (pos) =>
+      this.addMusicBlock(pos)
     this.users = {}
 
   cleanUserMessage: (userId) ->
@@ -74,11 +76,11 @@ class Game extends Backbone.View
       hideGame: => this.$el.hide()
       showGame: => this.$el.show()
 
-  addMusicBlock: ->
+  addMusicBlock: (pos) ->
     new MusicBlock
       game: this.game
       texture: 6
-      pos: {x: 387, y: 100, z: 387}
+      pos: pos
       soundUrl: 'http://api.soundcloud.com/tracks/293/stream?client_id=609ae0b573913db156968e0ec38c1e26'
       autoLoad: true
       autoPlay: true
@@ -101,14 +103,12 @@ textSprite = (text) ->
   sprite.position.set(0, 0, 0)
   sprite
 
-
 $(window).on 'keyup', (e) ->
-  return unless e.keyCode == 77 # Enter
-  Backbone.trigger 'showMessageBox'
+  if e.keyCode == 77 # 'm'
+    Backbone.trigger 'showMessageBox'
 
 gameView = window.gameView = new Game(el: $('#game'))
 gameView.render()
-gameView.addMusicBlock()
 
 messageBox = window.messageBox = new MessageBox(el: $('#messagebox'))
 messageBox.render()
