@@ -214,7 +214,7 @@
         onfinish: =>
           @trigger('track:finish', @sound.track, @sound)
           @next()
-        id: track.get('id')
+        id: _.uniqueId(track.get('id'))
         url: if _.isFunction(track.url) then track.url() else track.get('url')
         whileplaying: =>
           @trigger 'track:whileplaying', track, sound
