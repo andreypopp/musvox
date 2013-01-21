@@ -24,5 +24,8 @@
   "devDependencies": {
     "minecraft-skin": "0.0.1",
     "browservefy": "0.0.0"
+  },
+  "scripts": {
+    "start": "echo \"open localhost:8080/\" && ./node_modules/.bin/browservefy lib/app.js 8080 -- -d"
   }
 }
