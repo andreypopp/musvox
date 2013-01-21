@@ -17,10 +17,10 @@
     "interact": "0.0.2",
     "toolbar": "0.0.2",
     "voxel-texture": "0.2.1",
-    "underscore": "",
-    "ws": "",
-    "jquery-browserify": "",
-	},
+    "underscore": "1.4.3",
+    "ws": "0.4.25",
+    "jquery-browserify": "1.8.1"
+  },
   "devDependencies": {
     "minecraft-skin": "0.0.1",
     "browservefy": "0.0.0"
